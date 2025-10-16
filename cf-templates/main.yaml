@@ -1,0 +1,19 @@
+AWSTemplateFormatVersion: "2010-09-09"
+Description: Parent template to deploy all ECS services and VPC
+
+Parameters:
+  CFBucket:
+    Type: String
+    Description: "S3 bucket where nested templates are stored"
+
+Resources:
+  VPCStack:
+    Type: AWS::CloudFormation::Stack
+    Properties:
+      TemplateURL: !Sub https://s3.amazonaws.com/${CFBucket}/vpc.yaml
+      Parameters:
+        projectName: myproject
+        envName: dev
+        vpcCidrBlock: 10.72.0.0/16
+        numberOfSubnets: 4
+      TimeoutInMinutes: 15
