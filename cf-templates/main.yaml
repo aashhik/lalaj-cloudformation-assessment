@@ -6,11 +6,15 @@ Parameters:
     Type: String
     Description: "S3 bucket where nested templates are stored"
 
+  CFBucketPrefix:
+    Type: String
+    Description: "Prefix for template files"
+
 Resources:
   VPCStack:
     Type: AWS::CloudFormation::Stack
     Properties:
-      TemplateURL: !Sub https://s3.amazonaws.com/${CFBucket}/vpc.yaml
+      TemplateURL: !Sub https://s3.amazonaws.com/${CFBucket}/${CFBucketPrefix}/vpc.yaml
       Parameters:
         projectName: myproject
         envName: dev
