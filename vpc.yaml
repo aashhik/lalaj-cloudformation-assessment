@@ -2,10 +2,10 @@ AWSTemplateFormatVersion: "2010-09-09"
 Description: Creates required AWS services for Hello World App
 
 Parameters:
-  vpcName:
+  projectName:
     Description: Enter AWS VPC name
     Type: String
-    Default: testvpc
+    Default: test
 
   envName:
     Description: Environment tag
@@ -34,7 +34,7 @@ Resources:
       InstanceTenancy: default
       Tags: 
         - Key: Name
-          Value: !Ref vpcName
+          Value: !Ref projectName
         - Key: stack
           Value: !Ref envName 
 
@@ -61,7 +61,7 @@ Resources:
       MapPublicIpOnLaunch: true
       Tags:
         - Key: Name
-          Value: !Sub "${vpcName}-public-subnet-1"
+          Value: !Sub "${projectName}-public-subnet-1"
         - Key: Env
           Value: !Ref envName
 
@@ -74,7 +74,7 @@ Resources:
       MapPublicIpOnLaunch: true
       Tags:
         - Key: Name
-          Value: !Sub "${vpcName}-public-subnet-2"
+          Value: !Sub "${projectName}-public-subnet-2"
         - Key: Env
           Value: !Ref envName
 
@@ -89,7 +89,7 @@ Resources:
       MapPublicIpOnLaunch: false
       Tags:
         - Key: Name
-          Value: !Sub "${vpcName}-private-subnet-1"
+          Value: !Sub "${projectName}-private-subnet-1"
         - Key: Env
           Value: !Ref envName
 
@@ -102,7 +102,7 @@ Resources:
       MapPublicIpOnLaunch: false
       Tags:
         - Key: Name
-          Value: !Sub "${vpcName}-private-subnet-2"
+          Value: !Sub "${projectName}-private-subnet-2"
         - Key: Env
           Value: !Ref envName
 
@@ -113,7 +113,7 @@ Resources:
       VpcId: !Ref VPC
       Tags:
         - Key: Name
-          Value: !Sub "${vpcName}-PublicRouteTable"
+          Value: !Sub "${projectName}-PublicRouteTable"
         - Key: Env
           Value: !Ref envName
 
@@ -137,7 +137,7 @@ Resources:
       VpcId: !Ref VPC
       Tags:
         - Key: Name
-          Value: !Sub "${vpcName}-PrivateRouteTable"
+          Value: !Sub "${projectName}-PrivateRouteTable"
         - Key: Env
           Value: !Ref envName
 
@@ -178,7 +178,7 @@ Resources:
       SubnetId: !Ref PublicSubnet1
       Tags:
         - Key: Name
-          Value: !Sub "${vpcName}-NatGateway"
+          Value: !Sub "${projectName}-NatGateway"
         - Key: Env
           Value: !Ref envName
 

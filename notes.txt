@@ -7,5 +7,36 @@ aws cloudformation create-stack \
 aws cloudformation create-stack \
   --stack-name createCloudFormationStackSetExecutionRole \
   --template-url https://s3.amazonaws.com/cloudformation-stackset-sample-templates-us-east-1/AWSCloudFormationStackSetExecutionRole.yml \
-  --parameters ParameterKey=AdministratorAccountId,ParameterValue=487692781227 \
+  --parameters ParameterKey=AdministratorAccountId,ParameterValue=144947567756 \
   --capabilities CAPABILITY_NAMED_IAM
+
+
+# Create stackset
+
+aws cloudformation create-stack-set \
+  --stack-set-name MyStackSet \
+  --template-body file://vpc.yaml \
+  --permission-model SELF_MANAGED \
+  --administration-role-arn arn:aws:iam::144947567756:role/AWSCloudFormationStackSetAdministrationRole \
+  --execution-role-name AWSCloudFormationStackSetExecutionRole \
+  --capabilities CAPABILITY_NAMED_IAM \
+  --description "Self-managed StackSet for multiple accounts"
+
+--> store stacksetid in env using jq, since output is in json ==> MyStackSet:5ddcc02a-5d0e-451f-95de-97da8fcbecc9
+
+
+aws cloudformation create-stack-instances \
+  --stack-set-name MyStackSet \
+  --accounts 144947567756 \
+  --regions us-west-2 \
+  --parameter-overrides ParameterKey=vpcCidrBlock,ParameterValue=172.20.0.0/16
+
+
+--> Get operation ID from previous command’s output and check progress, since output is in json => d11bde00-ee22-46f6-959d-a7107abb916f
+
+aws cloudformation describe-stack-set-operation \
+  --stack-set-name MyStackSet \
+  --operation-id d11bde00-ee22-46f6-959d-a7107abb916f
+
+
+
