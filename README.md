@@ -1,2 +1,2 @@
-# lalaj-cloudformation-assessment
+# lalas-cloudformation-assessment
 Contains Cloudformation templates
