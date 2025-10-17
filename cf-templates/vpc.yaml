@@ -1,6 +1,5 @@
 AWSTemplateFormatVersion: "2010-09-09"
-Description: Creates required AWS services for Hello World App
-
+Description: Creates AWS VPC
 Parameters:
   projectName:
     Description: Enter AWS VPC name
@@ -35,14 +34,14 @@ Resources:
       Tags: 
         - Key: Name
           Value: !Ref projectName
-        - Key: stack
+        - Key: Env
           Value: !Ref envName 
 
   InternetGateway:
     Type: AWS::EC2::InternetGateway
     Properties:
       Tags:
-        - Key: stack
+        - Key: Env
           Value: dev
 
   InternetGatewayAttachment:

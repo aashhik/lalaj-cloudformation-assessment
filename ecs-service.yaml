@@ -1,0 +1,77 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Description: >-
+  This service deploys in Bridge networking mode on EC2 capacity.
+  Service uses a capacity provider to request EC2 instances to run on. Service
+  runs with networking in private subnets.
+
+Parameters:
+  projectName:
+    Description: Enter AWS VPC name
+    Type: String
+    Default: test
+
+  envName:
+    Description: Environment tag
+    Type: String
+    Default: dev
+
+  serviceName:
+    Description: Name of container
+    Type: String
+    Defualt: python
+
+  containerCpu:
+    Description: How much CPU to give the container. 1024 is 1 CPU
+    Type: Number
+    Default: 256
+
+  containerMemory:
+    Description: How much memory in megabytes to give the container
+    Type: Number
+    Default: 512
+
+  ImageUrl:
+    Description: The url of a docker image that contains the application process
+    Type: String
+    Default: 'aashhik/hellopython:v1'
+
+  eCSTaskExecutionRole:
+    Description: The role used to start up an ECS task
+    Type: String
+  
+  capacityProvider:
+    Description: The cluster capacity provider that ECS service should use for scaling
+    Type: String
+
+Resources:
+  LogGroup:
+    Type: 'AWS::Logs::LogGroup' 
+    Properties:
+      RetentionInDays: 7
+
+  TaskDefinition:
+    Type: 'AWS::ECS::TaskDefinition'
+    Properties:
+      Family: !Ref serviceName
+      Cpu: !Ref containerCpu
+      Memory: !Ref containerMemory
+      NetworkMode: bridge
+      RequiresCompatibilities:
+        - EC2
+      ExecutionRoleArn: !Ref eCSTaskExecutionRole
+      ContainerDefinitions:
+        - Name: !Sub "${serviceName}-app"
+          Cpu: !Ref containerCpu
+          Memory: !Ref containerMemory
+          Image: !Ref imageUrl
+          PortMappings:
+            - ContainerPort: !Ref containerPort
+              HostPort: !Ref containerPort
+          LogConfiguration:
+            LogDriver: awslogs
+            Options:
+              mode: non-blocking
+              max-buffer-size: 25m
+              awslogs-group: !Ref LogGroup
+              awslogs-region: !Ref AWS::Region
+              awslogs-stream-prefix: !Ref serviceName

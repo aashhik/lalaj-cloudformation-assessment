@@ -51,18 +51,28 @@ function upload_templates () {
 }
 
 function create_cf_stackset_administration_role () {
-    aws cloudformation create-stack \
-        --stack-name createCloudFormationStackSetAdministrationRole \
-        --template-url https://s3.amazonaws.com/cloudformation-stackset-sample-templates-us-east-1/AWSCloudFormationStackSetAdministrationRole.yml \
-        --capabilities CAPABILITY_NAMED_IAM
+    if ! aws iam list-roles --query "Roles[].RoleName" --output text | grep -q AWSCloudFormationStackSetAdministrationRole; then
+        echo "Role not found. Creating CloudFormation stack that creates Cloudformation Administration Role"
+        aws cloudformation create-stack \
+            --stack-name createCloudFormationStackSetAdministrationRole \
+            --template-url https://s3.amazonaws.com/cloudformation-stackset-sample-templates-us-east-1/AWSCloudFormationStackSetAdministrationRole.yml \
+            --capabilities CAPABILITY_NAMED_IAM
+    else
+        echo "CloudFormation Administration Role already exists."
+    fi
 }
 
 function create_cf_stackset_execution_role () {
-    aws cloudformation create-stack \
-        --stack-name createCloudFormationStackSetExecutionRole \
-        --template-url https://s3.amazonaws.com/cloudformation-stackset-sample-templates-us-east-1/AWSCloudFormationStackSetExecutionRole.yml \
-        --parameters ParameterKey=AdministratorAccountId,ParameterValue=$ADMIN_ACCOUNT_ID \
-        --capabilities CAPABILITY_NAMED_IAM
+    if ! aws iam list-roles --query "Roles[].RoleName" --output text | grep -q AWSCloudFormationStackSetExecutionRole; then
+        echo "Role not found. Creating CloudFormation stack that creates Cloudformation Execution Role"
+        aws cloudformation create-stack \
+            --stack-name createCloudFormationStackSetExecutionRole \
+            --template-url https://s3.amazonaws.com/cloudformation-stackset-sample-templates-us-east-1/AWSCloudFormationStackSetExecutionRole.yml \
+            --parameters ParameterKey=AdministratorAccountId,ParameterValue=$ADMIN_ACCOUNT_ID \
+            --capabilities CAPABILITY_NAMED_IAM
+    else
+        echo "CloudFormation Execution Role already exists."
+    fi
 }
 
 create_s3_bucket

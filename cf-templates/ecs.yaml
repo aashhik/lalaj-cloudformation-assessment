@@ -1,78 +1,89 @@
-AWSTemplateFormatVersion: 2010-09-09
-Description: EC2 ECS cluster that starts out empty, with no EC2 instances yet.
-  An ECS capacity provider automatically launches more EC2 instances as required
-  on the fly when you request ECS to launch services or standalone tasks.
+AWSTemplateFormatVersion: "2010-09-09"
+Description: Creates AWS EC2 Cluster
+
 Parameters:
   projectName:
-    Description: Enter AWS ECS Cluster name
+    Description: Enter AWS VPC name
     Type: String
     Default: test
 
-  InstanceType:
+  envName:
+    Description: Environment tag
     Type: String
-    Description: EC2 instance type
-    Default: "t2.micro"
-    AllowedValues:
-      - t1.micro
-      - t2.2xlarge
-      - t2.large
-      - t2.medium
-      - t2.micro
-      - t2.nano
-      - t2.small
-      - t2.xlarge
-      - t3.2xlarge
-      - t3.large
-      - t3.medium
-      - t3.micro
-      - t3.nano
-      - t3.small
-      - t3.xlarge
+    Default: dev
 
-  DesiredCapacity:
+  vpcId:
+    Description: VPC ID from vpc template outputs
+    Type: AWS::EC2::VPC::Id
+
+  subnetIds:
+    Description: List of private subnet IDs
+    Type: List<AWS::EC2::Subnet::Id>
+
+  instanceType:
+    Description: EC2 instance type
+    Type: String
+    Default: "t2.micro"
+
+  desiredCapacity:
+    Description: Number of EC2 instances to launch in ECS cluster.
     Type: Number
     Default: "2"
-    Description: Number of EC2 instances to launch in your ECS cluster.
 
-  MaxSize:
+  maxSize:
+    Description: Maximum number of EC2 instances that can be launched in ECS cluster.
     Type: Number
     Default: "5"
-    Description: Maximum number of EC2 instances that can be launched in your ECS cluster.
 
   ECSAMI:
     Description: The Amazon Machine Image ID used for the cluster
     Type: AWS::SSM::Parameter::Value<AWS::EC2::Image::Id>
     Default: /aws/service/ecs/optimized-ami/amazon-linux-2023/recommended/image_id
 
-  VpcId:
-    Type: AWS::EC2::VPC::Id
-    Description: VPC ID where the ECS cluster is launched
-    Default: vpc-1234567890abcdef0
-
-  SubnetIds:
-    Type: List<AWS::EC2::Subnet::Id>
-    Description: List of subnet IDs where the EC2 instances will be launched
-    Default: "subnet-021345abcdef67890"
-
 Resources:
-  # This authorizes ECS to manage resources on your
-  # account on your behalf. This role is likely already created on your account
-  # ECSRole:
-  #  Type: AWS::IAM::ServiceLinkedRole
-  #  Properties:
-  #    AWSServiceName: 'ecs.amazonaws.com'
-  
-  # ECS Resources
+  EcsSecurityGroup:
+    Type: AWS::EC2::SecurityGroup
+    Properties:
+      GroupDescription: Security Group for ECS instances
+      GroupName: !Sub "${projectName}-${envName}-ecs-sg"
+      VpcId: !Ref vpcId
+      SecurityGroupIngress:
+        - IpProtocol: tcp
+          FromPort: 22
+          ToPort: 22
+          CidrIp: 0.0.0.0/0
+        - IpProtocol: tcp
+          FromPort: 8000
+          ToPort: 8000
+          CidrIp: 0.0.0.0/0
+      SecurityGroupEgress:
+        - IpProtocol: -1
+          CidrIp: 0.0.0.0/0
+      Tags: 
+        - Key: Name
+          Value: !Sub "${projectName}-sg"
+        - Key: Env
+          Value: !Ref envName 
+
+  SshKeyPair:
+    Type: AWS::EC2::KeyPair
+    Properties:
+      KeyName: !Sub "${projectName}-keypair"
+      KeyType: rsa
+
   ECSCluster:
     Type: AWS::ECS::Cluster
     Properties:
-      ClusterName: !Ref projectName
+      ClusterName: !Sub "${projectName}-ecs-cluster"
       ClusterSettings:
         - Name: containerInsights
           Value: disabled
-  
-  # Autoscaling group. This launches the actual EC2 instances that will register
-  # themselves as members of the cluster, and run the docker containers.
+      Tags: 
+          - Key: Name
+            Value: !Sub "${projectName}-ecs-cluster"
+          - Key: Env
+            Value: !Ref envName 
+
   ECSAutoScalingGroup:
     Type: AWS::AutoScaling::AutoScalingGroup
     DependsOn:
@@ -81,34 +92,30 @@ Resources:
       - ECSCluster
       - EC2Role
     Properties:
-      VPCZoneIdentifier:
-        Ref: SubnetIds
+      VPCZoneIdentifier: !Ref subnetIds
       LaunchTemplate:
         LaunchTemplateId: !Ref ContainerInstances
         Version: !GetAtt ContainerInstances.LatestVersionNumber
       MinSize: 0
-      MaxSize:
-        Ref: MaxSize
-      DesiredCapacity:
-        Ref: DesiredCapacity
-      NewInstancesProtectedFromScaleIn: true
+      MaxSize: !Ref maxSize
+      DesiredCapacity: !Ref desiredCapacity
+      NewInstancesProtectedFromScaleIn: false
     UpdatePolicy:
       AutoScalingReplacingUpdate:
         WillReplace: "true"
+
   # The config for each instance that is added to the cluster
   ContainerInstances:
     Type: AWS::EC2::LaunchTemplate
     Properties:
       LaunchTemplateName: "asg-launch-template"
       LaunchTemplateData:
-        ImageId:
-          Ref: ECSAMI
-        InstanceType:
-          Ref: InstanceType
+        ImageId: !Ref ECSAMI
+        InstanceType: !Ref instanceType
         IamInstanceProfile:
           Name: !Ref EC2InstanceProfile
         SecurityGroupIds:
-          - !Ref ContainerHostSecurityGroup
+          - !Ref EcsSecurityGroup
         # This injected configuration file is how the EC2 instance
       # knows which ECS cluster on your AWS account it should be joining
         UserData:
@@ -121,16 +128,11 @@ Resources:
         MetadataOptions:
           HttpEndpoint: enabled
           HttpTokens: required
-  EC2InstanceProfile:
-    Type: AWS::IAM::InstanceProfile
-    Properties:
-      Path: /
-      Roles: 
-      - !Ref EC2Role 
   # Create an ECS capacity provider to attach the ASG to the ECS cluster
   # so that it autoscales as we launch more containers
   CapacityProvider:
     Type: AWS::ECS::CapacityProvider
+    DependsOn: ECSAutoScalingGroup
     Properties:
       AutoScalingGroupProvider:
         AutoScalingGroupArn: !Ref ECSAutoScalingGroup
@@ -141,7 +143,7 @@ Resources:
           Status: ENABLED
           # Percentage of cluster reservation to try to maintain
           TargetCapacity: 100
-        ManagedTerminationProtection: ENABLED
+        ManagedTerminationProtection: DISABLED
    # Create a cluster capacity provider assocation so that the cluster
   # will use the capacity provider
   CapacityProviderAssociation:
@@ -154,16 +156,15 @@ Resources:
         - Base: 0
           CapacityProvider: !Ref CapacityProvider
           Weight: 1
-  # A security group for the EC2 hosts that will run the containers.
-  # This can be used to limit incoming traffic to or outgoing traffic
-  # from the container's host EC2 instance.
-  ContainerHostSecurityGroup:
-    Type: AWS::EC2::SecurityGroup
+
+  EC2InstanceProfile:
+    Type: AWS::IAM::InstanceProfile
     Properties:
-      GroupDescription: Access to the EC2 hosts that run containers
-      VpcId:
-        Ref: VpcId
-  # Role for the EC2 hosts. This allows the ECS agent on the EC2 hosts
+      Path: /
+      Roles: 
+      - !Ref EC2Role
+
+  # This allows the ECS agent on the EC2 hosts
   # to communciate with the ECS control plane, as well as download the docker
   # images from ECR to run on your host.
   EC2Role:
@@ -183,6 +184,7 @@ Resources:
         - arn:aws:iam::aws:policy/service-role/AmazonEC2ContainerServiceforEC2Role
       # This managed policy allows us to connect to the instance using SSM
         - arn:aws:iam::aws:policy/AmazonSSMManagedInstanceCore
+
   # This is a role which is used within Fargate to allow the Fargate agent
   # to download images, and upload logs.
   ECSTaskExecutionRole:
@@ -205,15 +207,29 @@ Resources:
       # This role enables all features of ECS. See reference:
     # https://docs.aws.amazon.com/AmazonECS/latest/developerguide/security-iam-awsmanpol.html#security-iam-awsmanpol-AmazonECSTaskExecutionRolePolicy
       ManagedPolicyArns:
-        - arn:aws:iam::aws:policy/service-role/AmazonECSTaskExecutionRolePolicy
+        - arn:aws:iam::aws:policy/service-role/AmazonECSTaskExecutionRolePolicy 
+
 Outputs:
+  KeyPairPrivateKey:
+    Description: "Private key to SSH into EC2 instances"
+    Value: !GetAtt SshKeyPair.KeyPairId
+    Export:
+      Name: !Sub "${projectName}-KeyPairPrivateKey"
+
   ClusterName:
     Description: The ECS cluster into which to launch resources
-    Value: ECSCluster
+    Value: !Ref ECSCluster
+    Export:
+      Name: !Sub "${projectName}-EcsClusterName"
+
   ECSTaskExecutionRole:
     Description: The role used to start up a task
-    Value: ECSTaskExecutionRole
+    Value: !GetAtt ECSTaskExecutionRole.Arn
+    Export:
+      Name: !Sub "${projectName}-ECSTaskExecutionName"
+
   CapacityProvider:
-    Description: The cluster capacity provider that the service should use to
-      request capacity when it wants to start up a task
-    Value: CapacityProvider
+    Description: The cluster capacity provider that the service should use to request capacity when it wants to start up a task
+    Value: !Ref CapacityProvider
+    Export:
+      Name: !Sub "${projectName}-CapacityProvider"

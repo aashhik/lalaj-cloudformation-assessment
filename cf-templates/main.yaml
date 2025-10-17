@@ -1,5 +1,5 @@
 AWSTemplateFormatVersion: "2010-09-09"
-Description: Parent template to deploy all ECS services and VPC
+Description: Parent template to deploy all AWS Services
 
 Parameters:
   CFBucket:
@@ -21,3 +21,35 @@ Resources:
         vpcCidrBlock: 10.72.0.0/16
         numberOfSubnets: 4
       TimeoutInMinutes: 15
+
+  ECSStack:
+    Type: AWS::CloudFormation::Stack
+    DependsOn: VPCStack
+    Properties:
+      TemplateURL: !Sub https://s3.amazonaws.com/${CFBucket}/${CFBucketPrefix}/ecs.yaml
+      Parameters:
+        projectName: myproject
+        envName: dev
+        instanceType: t2.micro
+        desiredCapacity: 2
+        maxSize: 5
+        vpcId: !GetAtt VPCStack.Outputs.VpcId
+        subnetIds: !Join [",", [!GetAtt VPCStack.Outputs.PrivateSubnet1Id, !GetAtt VPCStack.Outputs.PrivateSubnet2Id]]
+      TimeoutInMinutes: 30
+
+  ECSServiceStack:
+    Type: AWS::CloudFormation::Stack
+    DependsOn: ECSStack
+    Properties:
+      TemplateURL: !Sub https://s3.amazonaws.com/${CFBucket}/${CFBucketPrefix}/ecs-service.yaml
+      Parameters:
+        projectName: myproject
+        envName: dev
+        containerCpu: 256
+        containerMemory: 512
+        containerPort: 8000
+        imageUrl: aashhik/hellopython:v1
+        serviceName: python
+        clusterName: !GetAtt ECSStack.Outputs.ClusterName
+        ecsTaskExecutionRole: !GetAtt ECSStack.Outputs.ECSTaskExecutionRole
+        capacityProvider: !GetAtt ECSStack.Outputs.CapacityProvider
