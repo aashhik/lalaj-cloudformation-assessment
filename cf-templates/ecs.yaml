@@ -65,11 +65,11 @@ Resources:
         - Key: Env
           Value: !Ref envName 
 
-  SshKeyPair:
-    Type: AWS::EC2::KeyPair
-    Properties:
-      KeyName: !Sub "${projectName}-keypair"
-      KeyType: rsa
+  # SshKeyPair:
+  #   Type: AWS::EC2::KeyPair
+  #   Properties:
+  #     KeyName: !Sub "${projectName}-keypair"
+  #     KeyType: rsa
 
   ECSCluster:
     Type: AWS::ECS::Cluster
@@ -210,11 +210,11 @@ Resources:
         - arn:aws:iam::aws:policy/service-role/AmazonECSTaskExecutionRolePolicy 
 
 Outputs:
-  KeyPairPrivateKey:
-    Description: "Private key to SSH into EC2 instances"
-    Value: !GetAtt SshKeyPair.KeyPairId
-    Export:
-      Name: !Sub "${projectName}-KeyPairPrivateKey"
+  # KeyPairPrivateKey:
+  #   Description: "Private key to SSH into EC2 instances"
+  #   Value: !GetAtt SshKeyPair.KeyPairId
+  #   Export:
+  #     Name: !Sub "${projectName}-KeyPairPrivateKey"
 
   ClusterName:
     Description: The ECS cluster into which to launch resources

@@ -131,3 +131,7 @@ aws cloudformation describe-stack-set-operation \
         }
     }
 }
+
+aws elbv2 describe-load-balancers --query "LoadBalancers[*].DNSName" --region us-west-2 --output text
+
+StackS-Publi-4kJxFyIy62t8-89797621.us-west-2.elb.amazonaws.com
