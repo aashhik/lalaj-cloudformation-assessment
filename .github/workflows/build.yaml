@@ -28,7 +28,7 @@ jobs:
     # Build Image, Tag and push to DockerHub 
     - name: Build, tag and push image to DockerHub
       run: |
-        docker build -f Dockerfile -t aashhik/hellopython:v1 .
+        docker build -f ./app/Dockerfile -t aashhik/hellopython:v1 .
         echo "Pushing image to DockerHub..."
         docker push aashhik/hellopython:v1
 
