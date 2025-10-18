@@ -70,9 +70,72 @@ function create_cf_stackset_execution_role () {
             --template-url https://s3.amazonaws.com/cloudformation-stackset-sample-templates-us-east-1/AWSCloudFormationStackSetExecutionRole.yml \
             --parameters ParameterKey=AdministratorAccountId,ParameterValue=$ADMIN_ACCOUNT_ID \
             --capabilities CAPABILITY_NAMED_IAM
+        add_minimal_policy
     else
         echo "CloudFormation Execution Role already exists."
     fi
+}
+
+function add_minimal_policy () {
+    local role_name="AWSCloudFormationStackSetExecutionRole"
+    local policy_file="policy.json"
+    local policy_name="CFStackSetExecutionMinimalPolicy"
+    local policy_file="policy.json"
+
+
+    echo "Detaching all managed policies from role: $role_name"
+    policy_arn=$(aws iam list-attached-role-policies \
+                    --role-name AWSCloudFormationStackSetExecutionRole \
+                    --query "AttachedPolicies[*].PolicyArn" \
+                    --output text)
+
+    aws iam detach-role-policy \
+        --role-name AWSCloudFormationStackSetExecutionRole \
+        --policy-arn $policy_arn
+    
+
+    echo "Generating minimal policy for AWSCloudFormationStackSetExecutionRole IAM Role"
+    cat > "$policy_file" <<EOF
+{
+    "Version": "2012-10-17",
+    "Statement": [
+        {
+            "Effect": "Allow",
+            "Action": [
+                "ec2:*",
+                "autoscaling:*",
+                "ecs:*",
+                "elasticloadbalancing:*",
+                "cloudformation:*",
+                "ssm:GetParameters",
+                "ssm:GetParameter",
+                "ssm:DescribeParameters",
+                "logs:*",
+                "iam:*"
+            ],
+            "Resource": "*"
+        },
+        {
+            "Effect": "Allow",
+            "Action": [
+                "s3:GetObject",
+                "s3:ListBucket"
+            ],
+            "Resource": [
+                "arn:aws:s3:::$BUCKET_NAME",
+                "arn:aws:s3:::$BUCKET_NAME/$BUCKET_PREFIX/*"
+            ]
+        }
+    ]
+}
+EOF
+
+    echo "Attaching minimal inline policy: $policy_name"
+    aws iam put-role-policy \
+        --role-name $role_name \
+        --policy-name $policy_name \
+        --policy-document file://$policy_file
+    echo "Minimal inline policy attached successfully to $role_name."
 }
 
 create_s3_bucket

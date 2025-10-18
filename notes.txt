@@ -135,3 +135,40 @@ aws cloudformation describe-stack-set-operation \
 aws elbv2 describe-load-balancers --query "LoadBalancers[*].DNSName" --region us-west-2 --output text
 
 StackS-Publi-4kJxFyIy62t8-89797621.us-west-2.elb.amazonaws.com
+
+
+---- list attached polices -----
+
+
+output:
+
+aws iam list-attached-role-policies --role-name AWSServiceRoleForBackup
+
+{
+    "AttachedPolicies": [
+        {
+            "PolicyName": "AWSBackupServiceLinkedRolePolicyForBackup",
+            "PolicyArn": "arn:aws:iam::aws:policy/aws-service-role/AWSBackupServiceLinkedRolePolicyForBackup"
+        }
+    ]
+}
+
+
+
+aws iam list-attached-role-policies \
+--role-name AWSServiceRoleForBackup \
+--query "AttachedPolicies[*].PolicyArn" \
+--output text
+
+aws iam detach-role-policy \
+  --role-name MyEC2Role \
+  --policy-arn arn:aws:iam::aws:policy/AmazonEC2ReadOnlyAccess
+
+
+
+
+minimal_policy_arn=$(aws iam create-policy \
+                            --policy-name CFStackSetExecutionMinimalPolicy \
+                            --policy-document file://policy.json \
+                            --query "Policy.Arn" \
+                            --output text)
