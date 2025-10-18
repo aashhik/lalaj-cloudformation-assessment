@@ -47,4 +47,5 @@ jobs:
           bucket_prefix: ${{ secrets.BUCKET_PREFIX }}
           admin_account_id: ${{ secrets.AWS_ADMIN_ACCOUNT_ID }}
         run: |
-          bash ./prerequisites.sh $bucket_name $bucket_prefix $admin_account_id
+          echo $bucket_name
+          # bash ./prerequisites.sh "$bucket_name" "$bucket_prefix" "$admin_account_id"
