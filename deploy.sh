@@ -96,5 +96,10 @@ function create_stack_instances () {
     done
 }
 
+function get_elb_name () {
+    endpoint=$(aws elbv2 describe-load-balancers --query "LoadBalancers[*].DNSName" --region $TARGET_AWS_REGION --output text)
+    echo $endpoint
+}
+
 create_stackset
 create_stack_instances
