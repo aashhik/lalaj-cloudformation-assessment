@@ -49,7 +49,11 @@ Resources:
         containerMemory: 512
         containerPort: 8000
         imageUrl: aashhik/hellopython:v1
+        desiredCount: 2
         serviceName: python
+        vpcId: !GetAtt VPCStack.Outputs.VpcId
+        publicSubnetIds: !Join [",", [!GetAtt VPCStack.Outputs.PublicSubnet1Id, !GetAtt VPCStack.Outputs.PublicSubnet2Id]]
+        privateSubnetIds: !Join [",", [!GetAtt VPCStack.Outputs.PrivateSubnet1Id, !GetAtt VPCStack.Outputs.PrivateSubnet2Id]]
         clusterName: !GetAtt ECSStack.Outputs.ClusterName
         ecsTaskExecutionRole: !GetAtt ECSStack.Outputs.ECSTaskExecutionRole
         capacityProvider: !GetAtt ECSStack.Outputs.CapacityProvider

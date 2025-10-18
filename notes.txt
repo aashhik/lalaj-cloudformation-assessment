@@ -67,3 +67,67 @@ aws cloudformation delete-stack-instances \
 
 aws cloudformation delete-stack-set \
   --stack-set-name MyStackSet
+
+
+# Check progress like this
+aws cloudformation describe-stack-set-operation \
+  --stack-set-name test-lalas-stackset \
+  --operation-id f12a1f25-ed1d-4481-829b-8ba9d53f552e
+
+
+{
+    "StackSetOperation": {
+        "OperationId": "f12a1f25-ed1d-4481-829b-8ba9d53f552e",
+        "StackSetId": "test-lalas-stackset:c49f2d23-78f2-4bd9-b4c6-2722eba3adea",
+        "Action": "UPDATE",
+        "Status": "RUNNING",
+        "OperationPreferences": {
+            "RegionOrder": []
+        },
+        "AdministrationRoleARN": "arn:aws:iam::309191981509:role/AWSCloudFormationStackSetAdministrationRole",
+        "ExecutionRoleName": "AWSCloudFormationStackSetExecutionRole",
+        "CreationTimestamp": "2025-10-18T05:27:57.207000+00:00",
+        "StatusDetails": {
+            "FailedStackInstancesCount": 0
+        }
+    }
+}
+
+
+{
+    "StackSetOperation": {
+        "OperationId": "f12a1f25-ed1d-4481-829b-8ba9d53f552e",
+        "StackSetId": "test-lalas-stackset:c49f2d23-78f2-4bd9-b4c6-2722eba3adea",
+        "Action": "UPDATE",
+        "Status": "FAILED",
+        "OperationPreferences": {
+            "RegionOrder": []
+        },
+        "AdministrationRoleARN": "arn:aws:iam::309191981509:role/AWSCloudFormationStackSetAdministrationRole",
+        "ExecutionRoleName": "AWSCloudFormationStackSetExecutionRole",
+        "CreationTimestamp": "2025-10-18T05:27:57.207000+00:00",
+        "EndTimestamp": "2025-10-18T05:35:24.206000+00:00",
+        "StatusDetails": {
+            "FailedStackInstancesCount": 1
+        }
+    }
+}
+
+{
+    "StackSetOperation": {
+        "OperationId": "655c4eb8-6478-4ea8-b618-a80dfa13edba",
+        "StackSetId": "test-lalas-stackset:c49f2d23-78f2-4bd9-b4c6-2722eba3adea",
+        "Action": "UPDATE",
+        "Status": "SUCCEEDED",
+        "OperationPreferences": {
+            "RegionOrder": []
+        },
+        "AdministrationRoleARN": "arn:aws:iam::309191981509:role/AWSCloudFormationStackSetAdministrationRole",
+        "ExecutionRoleName": "AWSCloudFormationStackSetExecutionRole",
+        "CreationTimestamp": "2025-10-18T05:40:26.292000+00:00",
+        "EndTimestamp": "2025-10-18T05:48:17.860000+00:00",
+        "StatusDetails": {
+            "FailedStackInstancesCount": 0
+        }
+    }
+}

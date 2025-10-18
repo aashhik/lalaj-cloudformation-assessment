@@ -15,6 +15,18 @@ Parameters:
     Type: String
     Default: dev
 
+  vpcId:
+    Description: VPC ID from vpc template outputs
+    Type: AWS::EC2::VPC::Id
+
+  publicSubnetIds:
+    Description: List of public subnet IDs
+    Type: List<AWS::EC2::Subnet::Id>
+
+  privateSubnetIds:
+    Description: List of private subnet IDs
+    Type: List<AWS::EC2::Subnet::Id>
+
   serviceName:
     Description: Name of container
     Type: String
@@ -39,6 +51,11 @@ Parameters:
     Description: The url of a docker image that contains the application process
     Type: String
     Default: 'aashhik/hellopython:v1'
+
+  desiredCount:
+    Description: How many copies of the service task to run
+    Type: Number
+    Default: 2
 
   clusterName:
     Description: Name of the ECS cluster
@@ -84,3 +101,109 @@ Resources:
               awslogs-group: !Ref LogGroup
               awslogs-region: !Ref AWS::Region
               awslogs-stream-prefix: !Ref serviceName
+
+  Service:
+    Type: AWS::ECS::Service
+    DependsOn: PublicLoadBalancerListener
+    Properties:
+      ServiceName: !Ref serviceName
+      Cluster: !Ref clusterName
+      PlacementStrategies:
+        - Field: 'attribute:ecs.availability-zone'
+          Type: spread
+        - Field: cpu
+          Type: binpack
+      CapacityProviderStrategy:
+        - Base: 0
+          CapacityProvider: !Ref capacityProvider
+          Weight: 1
+      DeploymentConfiguration:
+        MaximumPercent: 200
+        MinimumHealthyPercent: 75
+      DesiredCount: !Ref desiredCount
+      TaskDefinition: !Ref TaskDefinition
+      LoadBalancers:
+        - ContainerName: !Sub "${serviceName}-app"
+          ContainerPort: !Ref containerPort
+          TargetGroupArn: !Ref ServiceTargetGroup
+
+  ServiceSecurityGroup:
+    Type: AWS::EC2::SecurityGroup
+    Properties:
+      GroupDescription: Security group for service
+      VpcId: !Ref vpcId
+      SecurityGroupIngress:
+        - IpProtocol: tcp
+          FromPort: 8000
+          ToPort: 8000
+          CidrIp: 0.0.0.0/0
+      SecurityGroupEgress:
+        - IpProtocol: -1
+          CidrIp: 0.0.0.0/0
+
+  PublicLoadBalancerSG:
+    Type: 'AWS::EC2::SecurityGroup'
+    Properties:
+      GroupDescription: Access to the public facing load balancer
+      VpcId: !Ref vpcId
+      SecurityGroupIngress:
+        - IpProtocol: tcp
+          FromPort: 80
+          ToPort: 80
+          CidrIp: 0.0.0.0/0
+        - IpProtocol: tcp
+          FromPort: 443
+          ToPort: 443
+          CidrIp: 0.0.0.0/0
+      SecurityGroupEgress:
+        - IpProtocol: -1
+          CidrIp: 0.0.0.0/0
+
+  ServiceTargetGroup:
+    Type: AWS::ElasticLoadBalancingV2::TargetGroup
+    Properties:
+      HealthCheckIntervalSeconds: 6
+      HealthCheckPath: /
+      HealthCheckProtocol: HTTP
+      HealthCheckTimeoutSeconds: 5
+      HealthyThresholdCount: 2
+      TargetType: instance
+      Port: !Ref containerPort
+      Protocol: HTTP
+      UnhealthyThresholdCount: 10
+      VpcId: !Ref vpcId
+      TargetGroupAttributes:
+        - Key: deregistration_delay.timeout_seconds
+          Value: 0
+
+  PublicLoadBalancerListener:
+    Type: AWS::ElasticLoadBalancingV2::Listener
+    Properties:
+      DefaultActions:
+        - Type: forward
+          ForwardConfig:
+            TargetGroups:
+              - TargetGroupArn: !Ref ServiceTargetGroup
+                Weight: 100
+      LoadBalancerArn: !Ref PublicLoadBalancer
+      Port: 80
+      Protocol: HTTP
+
+  PublicLoadBalancer:
+    Type: AWS::ElasticLoadBalancingV2::LoadBalancer
+    Properties:
+      Scheme: internet-facing
+      LoadBalancerAttributes:
+        - Key: idle_timeout.timeout_seconds
+          Value: '30'
+      Subnets: !Ref publicSubnetIds
+      SecurityGroups:
+        - !Ref PublicLoadBalancerSG
+
+  ServiceIngressfromLoadBalancer:
+    Type: AWS::EC2::SecurityGroupIngress
+    Properties:
+      Description: Ingress from the public ALB
+      GroupId: !Ref ServiceSecurityGroup
+      IpProtocol: -1
+      SourceSecurityGroupId: !Ref PublicLoadBalancerSG
