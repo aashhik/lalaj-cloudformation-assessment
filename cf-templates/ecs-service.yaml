@@ -1,8 +1,5 @@
 AWSTemplateFormatVersion: '2010-09-09'
-Description: >-
-  This service deploys in Bridge networking mode on EC2 capacity.
-  Service uses a capacity provider to request EC2 instances to run on. Service
-  runs with networking in private subnets.
+Description: This service deploys in Bridge networking mode on EC2 capacity. Service uses a capacity provider to request EC2 instances to run on. Service runs with networking in private subnets.
 
 Parameters:
   projectName:
@@ -187,7 +184,7 @@ Resources:
   ServiceTargetGroup:
     Type: AWS::ElasticLoadBalancingV2::TargetGroup
     Properties:
-      Name: !Sub "{projectName}-target-group"
+      Name: !Sub "${projectName}-target-group"
       HealthCheckIntervalSeconds: 6
       HealthCheckPath: /
       HealthCheckProtocol: HTTP
@@ -223,7 +220,7 @@ Resources:
   PublicLoadBalancer:
     Type: AWS::ElasticLoadBalancingV2::LoadBalancer
     Properties:
-      Name: !Sub "{projectName}-lb"
+      Name: !Sub "${projectName}-lb"
       Scheme: internet-facing
       LoadBalancerAttributes:
         - Key: idle_timeout.timeout_seconds

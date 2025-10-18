@@ -32,9 +32,19 @@ jobs:
         echo "Pushing image to DockerHub..."
         docker push aashhik/hellopython:v1
 
-  # deploy:
-  #   name: DEPLOY CLOUDFORMATION STACKSET
-  #   needs: ['build']
-  #   runs-on: ubuntu-latest
-  #   environment: ${{ inputs.environment }}
-  #   steps:
+  pre-deploy:
+    name: CREATE S3 BUCKETS AND AWS ROLES
+    needs: ['build']
+    runs-on: ubuntu-latest
+    environment: ${{ inputs.environment }}
+    steps:
+      - name: Check out code
+        uses: actions/checkout@v5
+
+      - name: Create S3 bucket and execution roles for Cloudformation
+        env:
+          bucket_name: ${{ secrets.BUCKET_NAME }}
+          bucket_prefix: ${{ secrets.BUCKET_PREFIX }}
+          admin_account_id: ${{ secrets.AWS_ADMIN_ACCOUNT_ID }}
+        run: |
+          bash ./prerequisites.sh $bucket_name $bucket_prefix $admin_account_id

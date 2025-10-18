@@ -78,7 +78,7 @@ function create_stack_instances () {
     while true; do
         status=$(aws cloudformation describe-stack-set-operation \
                       --stack-set-name $STACKSET_NAME \
-                      --operation-id $operation_id
+                      --operation-id $operation_id \
                       --query "StackSetOperation.Status" \
                       --output text)
 
