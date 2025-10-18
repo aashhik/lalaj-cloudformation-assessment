@@ -50,4 +50,4 @@ jobs:
 
       - name: Create S3 bucket and execution roles for Cloudformation
         run: |
-          bash ./prerequisites.sh "${{ secrets.BUCKET_NAME }}" "${{ secrets.BUCKET_PREFIX }}" "${{ secrets.AWS_ADMIN_ACCOUNT_ID }}"
+          bash ./prerequisites.sh "${{ vars.BUCKET_NAME }}" "${{ vars.BUCKET_PREFIX }}" "${{ vars.AWS_ADMIN_ACCOUNT_ID }}"
