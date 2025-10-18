@@ -18,14 +18,12 @@ jobs:
     - name: Check out code
       uses: actions/checkout@v5
     
-    # Login to DockerHub
     - name: Login to Docker Hub
       uses: docker/login-action@v3
       with:
         username: ${{ vars.DOCKER_USERNAME }}
         password: ${{ secrets.DOCKER_TOKEN }}
 
-    # Build Image, Tag and push to DockerHub 
     - name: Build, tag and push image to DockerHub
       run: |
         docker build -f ./app/Dockerfile -t aashhik/hellopython:v1 .
@@ -49,5 +47,43 @@ jobs:
           aws-region: ${{ vars.AWS_ADMIN_REGION }}
 
       - name: Create S3 bucket and execution roles for Cloudformation
+        env:
+          BUCKET_NAME: ${{ vars.BUCKET_NAME }}
+          BUCKET_PREFIX: ${{ vars.BUCKET_PREFIX }}
+          AWS_ADMIN_ACCOUNT_ID: ${{ vars.AWS_ADMIN_ACCOUNT_ID }}
         run: |
-          bash ./prerequisites.sh "${{ vars.BUCKET_NAME }}" "${{ vars.BUCKET_PREFIX }}" "${{ vars.AWS_ADMIN_ACCOUNT_ID }}"
+          bash ./prerequisites.sh "$BUCKET_NAME" "$BUCKET_PREFIX" "$AWS_ADMIN_ACCOUNT_ID"
+
+  deploy:
+    name: Create AWS Services using Cloudformation templates
+    needs: ['build', 'pre-deploy']
+    runs-on: ubuntu-latest
+    environment: ${{ inputs.environment }}
+    steps:
+      - name: Check out code
+        uses: actions/checkout@v5
+
+      - name: Deploy Cloudformation Stacks
+        id: cf-deploy
+        env:
+          BUCKET_NAME: ${{ vars.BUCKET_NAME }}
+          BUCKET_PREFIX: ${{ vars.BUCKET_PREFIX }}
+          AWS_ADMIN_ACCOUNT_ID: ${{ vars.AWS_ADMIN_ACCOUNT_ID }}
+          AWS_TARGET_ACCOUNT_ID: ${{ vars.AWS_TARGET_ACCOUNT_ID }}
+          AWS_TARGET_REGION: ${{ vars.AWS_TARGET_REGION }}
+          STACKSET_NAME: ${{ vars.STACKSET_NAME }}
+        run: |
+          bash ./deploy.sh "$BUCKET_NAME" "$BUCKET_PREFIX" "$AWS_ADMIN_ACCOUNT_ID" "$AWS_TARGET_ACCOUNT_ID" "$AWS_TARGET_REGION" "$STACKSET_NAME"
+    outputs:
+      endpoint: ${{ steps.cf-deploy.outputs.alb-endpoint }}
+
+  run-test:
+    name: Test AWS ALB endpoint for /hello
+    needs: ['build', 'pre-deploy', 'deploy']
+    runs-on: ubuntu-latest
+    steps:
+      - name: Test endpoint with curl
+        env:
+          ALB_ENDPOINT: ${{ needs.deploy.outputs.endpoint}}
+        run: |
+          curl http://$ALB_ENDPOINT/hello; echo

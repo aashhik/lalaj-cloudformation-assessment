@@ -96,10 +96,12 @@ function create_stack_instances () {
     done
 }
 
-function get_elb_name () {
-    endpoint=$(aws elbv2 describe-load-balancers --query "LoadBalancers[*].DNSName" --region $TARGET_AWS_REGION --output text)
-    echo $endpoint
+function get_alb_endpoint () {
+    endpoint=$(aws elbv2 describe-load-balancers --region $TARGET_AWS_REGION | jq -r '.LoadBalancers | sort_by(.CreatedTime) | last(.[]).DNSName')
+    echo "Your AWS ALB endpoint is: $endpoint"
+    echo "alb-endpoint=$endpoint" >> $GITHUB_OUTPUT
 }
 
 create_stackset
 create_stack_instances
+get_alb_endpoint
