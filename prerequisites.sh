@@ -37,11 +37,16 @@ TEMPLATE_DIR="./cf-templates"
 export AWS_PAGER=""
 
 function create_s3_bucket () {
+    echo "Creating S3 Bucket $BUCKET_NAME with prefix $BUCKET_PREFIX..."
     aws s3api create-bucket \
         --bucket $BUCKET_NAME \
         --region us-east-1
-
+    echo "Created !!"
+    echo ""
+    echo "Uploading Cloudformation templates to $BUCKET_NAME S3 bucket..."
     upload_templates
+    echo "Upload Completed !!"
+    echo ""
 } 
 
 function upload_templates () {
@@ -52,27 +57,33 @@ function upload_templates () {
 
 function create_cf_stackset_administration_role () {
     if ! aws iam list-roles --query "Roles[].RoleName" --output text | grep -q AWSCloudFormationStackSetAdministrationRole; then
-        echo "Role not found. Creating CloudFormation stack that creates Cloudformation Administration Role"
-        aws cloudformation create-stack \
+        echo "Creating CloudFormation stack that creates Cloudformation Administration Role"
+        aws cloudformation create-stack\
             --stack-name createCloudFormationStackSetAdministrationRole \
             --template-url https://s3.amazonaws.com/cloudformation-stackset-sample-templates-us-east-1/AWSCloudFormationStackSetAdministrationRole.yml \
             --capabilities CAPABILITY_NAMED_IAM
+        aws cloudformation wait stack-create-complete \
+            --stack-name createCloudFormationStackSetAdministrationRole
+        echo "Stack creation complete !!"
     else
-        echo "CloudFormation Administration Role already exists."
+        echo "CloudFormation Administration Role already exists[SKIPPED]."
     fi
 }
 
 function create_cf_stackset_execution_role () {
     if ! aws iam list-roles --query "Roles[].RoleName" --output text | grep -q AWSCloudFormationStackSetExecutionRole; then
-        echo "Role not found. Creating CloudFormation stack that creates Cloudformation Execution Role"
+        echo "Creating CloudFormation stack that creates Cloudformation Execution Role"
         aws cloudformation create-stack \
             --stack-name createCloudFormationStackSetExecutionRole \
             --template-url https://s3.amazonaws.com/cloudformation-stackset-sample-templates-us-east-1/AWSCloudFormationStackSetExecutionRole.yml \
             --parameters ParameterKey=AdministratorAccountId,ParameterValue=$ADMIN_ACCOUNT_ID \
             --capabilities CAPABILITY_NAMED_IAM
+        aws cloudformation wait stack-create-complete \
+            --stack-name createCloudFormationStackSetExecutionRole
+        echo "Stack creation complete. Proceeding to attach minimal policy..."
         add_minimal_policy
     else
-        echo "CloudFormation Execution Role already exists."
+        echo "CloudFormation Execution Role already exists[SKIPPED]."
     fi
 }
 
@@ -80,7 +91,6 @@ function add_minimal_policy () {
     local role_name="AWSCloudFormationStackSetExecutionRole"
     local policy_file="policy.json"
     local policy_name="CFStackSetExecutionMinimalPolicy"
-    local policy_file="policy.json"
 
 
     echo "Detaching all managed policies from role: $role_name"
@@ -92,8 +102,8 @@ function add_minimal_policy () {
     aws iam detach-role-policy \
         --role-name AWSCloudFormationStackSetExecutionRole \
         --policy-arn $policy_arn
-    
 
+    echo ""
     echo "Generating minimal policy for AWSCloudFormationStackSetExecutionRole IAM Role"
     cat > "$policy_file" <<EOF
 {
@@ -135,7 +145,8 @@ EOF
         --role-name $role_name \
         --policy-name $policy_name \
         --policy-document file://$policy_file
-    echo "Minimal inline policy attached successfully to $role_name."
+    echo ""
+    echo "Minimal inline policy attached successfully to $role_name !!"
 }
 
 create_s3_bucket
