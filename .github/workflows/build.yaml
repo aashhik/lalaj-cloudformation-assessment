@@ -50,10 +50,8 @@ jobs:
 
       - name: Create S3 bucket and execution roles for Cloudformation
         env:
-          bucket_name: ${{ secrets.BUCKET_NAME }}
-          bucket_prefix: ${{ secrets.BUCKET_PREFIX }}
-          admin_account_id: ${{ secrets.AWS_ADMIN_ACCOUNT_ID }}
-          aws_region: ${{ vars.AWS_ADMIN_REGION }}
+          BUCKET_NAME: ${{ secrets.BUCKET_NAME }}
+          BUCKET_PREFIX: ${{ secrets.BUCKET_PREFIX }}
+          ADMIN_ACCOUNT_ID: ${{ secrets.AWS_ADMIN_ACCOUNT_ID }}
         run: |
-          echo $aws_region
-          # bash ./prerequisites.sh "$bucket_name" "$bucket_prefix" "$admin_account_id"
+          bash ./prerequisites.sh $BUCKET_NAME $BUCKET_PREFIX $ADMIN_ACCOUNT_ID
