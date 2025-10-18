@@ -16,7 +16,7 @@ Resources:
     Properties:
       TemplateURL: !Sub https://s3.amazonaws.com/${CFBucket}/${CFBucketPrefix}/vpc.yaml
       Parameters:
-        projectName: myproject
+        projectName: demo-lalas
         envName: dev
         vpcCidrBlock: 10.72.0.0/16
         numberOfSubnets: 4
@@ -28,7 +28,7 @@ Resources:
     Properties:
       TemplateURL: !Sub https://s3.amazonaws.com/${CFBucket}/${CFBucketPrefix}/ecs.yaml
       Parameters:
-        projectName: myproject
+        projectName: demo-lalas
         envName: dev
         instanceType: t2.micro
         desiredCapacity: 2
@@ -43,7 +43,7 @@ Resources:
     Properties:
       TemplateURL: !Sub https://s3.amazonaws.com/${CFBucket}/${CFBucketPrefix}/ecs-service.yaml
       Parameters:
-        projectName: myproject
+        projectName: demo-lalas
         envName: dev
         containerCpu: 256
         containerMemory: 512

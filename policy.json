@@ -24,8 +24,8 @@
                 "s3:ListBucket"
             ],
             "Resource": [
-                "arn:aws:s3:::test-lalas-bucket-cf",
-                "arn:aws:s3:::test-lalas-bucket-cf/cf-templates/*"
+                "arn:aws:s3:::demo-lalas-bucket-cf",
+                "arn:aws:s3:::demo-lalas-bucket-cf/cf-templates/*"
             ]
         }
     ]

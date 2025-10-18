@@ -71,12 +71,17 @@ Parameters:
 
 Resources:
   LogGroup:
-    Type: 'AWS::Logs::LogGroup' 
+    Type: AWS::Logs::LogGroup
     Properties:
       RetentionInDays: 7
+      Tags: 
+        - Key: Name
+          Value: !Sub "${projectName}-grouplog"
+        - Key: Env
+          Value: !Ref envName
 
   TaskDefinition:
-    Type: 'AWS::ECS::TaskDefinition'
+    Type: AWS::ECS::TaskDefinition
     Properties:
       Family: !Ref serviceName
       Cpu: !Ref containerCpu
@@ -101,6 +106,11 @@ Resources:
               awslogs-group: !Ref LogGroup
               awslogs-region: !Ref AWS::Region
               awslogs-stream-prefix: !Ref serviceName
+      Tags: 
+        - Key: Name
+          Value: !Sub "${projectName}-task-definition"
+        - Key: Env
+          Value: !Ref envName
 
   Service:
     Type: AWS::ECS::Service
@@ -126,6 +136,11 @@ Resources:
         - ContainerName: !Sub "${serviceName}-app"
           ContainerPort: !Ref containerPort
           TargetGroupArn: !Ref ServiceTargetGroup
+      Tags: 
+        - Key: Name
+          Value: !Sub "${projectName}-cluster-service"
+        - Key: Env
+          Value: !Ref envName
 
   ServiceSecurityGroup:
     Type: AWS::EC2::SecurityGroup
@@ -140,9 +155,14 @@ Resources:
       SecurityGroupEgress:
         - IpProtocol: -1
           CidrIp: 0.0.0.0/0
+      Tags: 
+        - Key: Name
+          Value: !Sub "${projectName}-cluster-service-sg"
+        - Key: Env
+          Value: !Ref envName
 
   PublicLoadBalancerSG:
-    Type: 'AWS::EC2::SecurityGroup'
+    Type: AWS::EC2::SecurityGroup
     Properties:
       GroupDescription: Access to the public facing load balancer
       VpcId: !Ref vpcId
@@ -158,10 +178,16 @@ Resources:
       SecurityGroupEgress:
         - IpProtocol: -1
           CidrIp: 0.0.0.0/0
+      Tags: 
+        - Key: Name
+          Value: !Sub "${projectName}-loadbalancer-sg"
+        - Key: Env
+          Value: !Ref envName
 
   ServiceTargetGroup:
     Type: AWS::ElasticLoadBalancingV2::TargetGroup
     Properties:
+      Name: !Sub "{projectName}-target-group"
       HealthCheckIntervalSeconds: 6
       HealthCheckPath: /
       HealthCheckProtocol: HTTP
@@ -175,6 +201,11 @@ Resources:
       TargetGroupAttributes:
         - Key: deregistration_delay.timeout_seconds
           Value: 0
+      Tags: 
+        - Key: Name
+          Value: !Sub "${projectName}-target-group"
+        - Key: Env
+          Value: !Ref envName
 
   PublicLoadBalancerListener:
     Type: AWS::ElasticLoadBalancingV2::Listener
@@ -192,6 +223,7 @@ Resources:
   PublicLoadBalancer:
     Type: AWS::ElasticLoadBalancingV2::LoadBalancer
     Properties:
+      Name: !Sub "{projectName}-lb"
       Scheme: internet-facing
       LoadBalancerAttributes:
         - Key: idle_timeout.timeout_seconds
@@ -199,6 +231,11 @@ Resources:
       Subnets: !Ref publicSubnetIds
       SecurityGroups:
         - !Ref PublicLoadBalancerSG
+      Tags: 
+        - Key: Name
+          Value: !Sub "${projectName}-lb"
+        - Key: Env
+          Value: !Ref envName
 
   ServiceIngressfromLoadBalancer:
     Type: AWS::EC2::SecurityGroupIngress

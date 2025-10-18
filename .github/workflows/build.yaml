@@ -1,0 +1,40 @@
+name: Application Build
+
+on:
+  workflow_call:
+    inputs:
+      environment:
+        required: true
+        type: string
+
+jobs:
+  build:
+    name: BUILD IMAGE
+    runs-on: ubuntu-latest
+    environment: ${{ inputs.environment }}
+    steps:
+
+    # Checkout under Github Workspace
+    - name: Check out code
+      uses: actions/checkout@v5
+    
+    # Login to DockerHub
+    - name: Login to Docker Hub
+      uses: docker/login-action@v3
+      with:
+        username: ${{ vars.DOCKER_USERNAME }}
+        password: ${{ secrets.DOCKER_TOKEN }}
+
+    # Build Image, Tag and push to DockerHub 
+    - name: Build, tag and push image to DockerHub
+      run: |
+        docker build -f Dockerfile -t aashhik/hellopython:v1 .
+        echo "Pushing image to DockerHub..."
+        docker push aashhik/hellopython:v1
+
+  # deploy:
+  #   name: DEPLOY CLOUDFORMATION STACKSET
+  #   needs: ['build']
+  #   runs-on: ubuntu-latest
+  #   environment: ${{ inputs.environment }}
+  #   steps:

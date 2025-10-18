@@ -100,6 +100,13 @@ Resources:
       MaxSize: !Ref maxSize
       DesiredCapacity: !Ref desiredCapacity
       NewInstancesProtectedFromScaleIn: false
+      Tags: 
+          - Key: Name
+            Value: !Sub "${projectName}-asg"
+            PropagateAtLaunch: true # This is required in tags for ASG
+          - Key: Env
+            Value: !Ref envName
+            PropagateAtLaunch: true # This is required in tags for ASG
     UpdatePolicy:
       AutoScalingReplacingUpdate:
         WillReplace: "true"
@@ -144,6 +151,12 @@ Resources:
           # Percentage of cluster reservation to try to maintain
           TargetCapacity: 100
         ManagedTerminationProtection: DISABLED
+      Tags: 
+          - Key: Name
+            Value: !Sub "${projectName}-capacity-provider"
+          - Key: Env
+            Value: !Ref envName 
+      
    # Create a cluster capacity provider assocation so that the cluster
   # will use the capacity provider
   CapacityProviderAssociation:

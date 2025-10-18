@@ -1,0 +1,16 @@
+name: Demo Lalas Workflow
+
+on:
+  push:
+    branches:
+      - 'main'
+  workflow_dispatch:
+
+jobs:
+  dev_build:
+    name: DEV
+    if: contains(github.ref_name, 'main')
+    secrets: inherit
+    uses: ./.github/workflows/build.yml
+    with:
+      environment: dev

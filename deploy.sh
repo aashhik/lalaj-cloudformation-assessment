@@ -42,6 +42,7 @@ STACKSET_NAME="$6"
 export AWS_PAGER=""
 
 function create_stackset () {
+    echo "Creating StackSet $STACKSET_NAME in admin account $ADMIN_ACCOUNT_ID..."
     aws cloudformation create-stack-set \
         --stack-set-name $STACKSET_NAME \
         --template-url https://s3.amazonaws.com/$BUCKET_NAME/$BUCKET_PREFIX/main.yaml \
@@ -53,16 +54,46 @@ function create_stackset () {
         --parameters \
           ParameterKey=CFBucket,ParameterValue=$BUCKET_NAME \
           ParameterKey=CFBucketPrefix,ParameterValue=$BUCKET_PREFIX
+    echo ""
+    echo "StackSet '$STACKSET_NAME' creation initiated."
 }
 
 function create_stack_instances () {
-    aws cloudformation create-stack-instances \
-        --stack-set-name $STACKSET_NAME \
-        --accounts $TARGET_ACCOUNT_ID \
-        --regions $TARGET_AWS_REGION \
-        --parameter-overrides \
-          ParameterKey=CFBucket,ParameterValue=$BUCKET_NAME \
-          ParameterKey=CFBucketPrefix,ParameterValue=$BUCKET_PREFIX
+    echo "Creating StackSet instances for account $TARGET_ACCOUNT_ID in region $TARGET_AWS_REGION..."
+    echo ""
+
+    operation_id=$(aws cloudformation create-stack-instances \
+                        --stack-set-name $STACKSET_NAME \
+                        --accounts $TARGET_ACCOUNT_ID \
+                        --regions $TARGET_AWS_REGION \
+                        --query "OperationId" \
+                        --output text \
+                        --parameter-overrides \
+                          ParameterKey=CFBucket,ParameterValue=$BUCKET_NAME \
+                          ParameterKey=CFBucketPrefix,ParameterValue=$BUCKET_PREFIX)
+
+    echo ""
+    echo "StackSet instances creation initiated with OperationId '$operation_id'..."
+
+    while true; do
+        status=$(aws cloudformation describe-stack-set-operation \
+                      --stack-set-name $STACKSET_NAME \
+                      --operation-id $operation_id
+                      --query "StackSetOperation.Status" \
+                      --output text)
+
+        if [ "$status" = "SUCCEEDED" ]; then
+          echo "Stack set operation succeeded. You can now test the endpoint."
+          break
+        elif [ "$status" = "QUEUED" ] || [ "$status" = "RUNNING" ]; then
+          echo "`date +"%a %b %d %I:%M:%S %p +0545"` Stack set operation is still in progress. Status: $status"
+          sleep 10
+        else
+          echo "Stack set operation failed. Status: $status"
+          echo "View status in CloudFormation console."
+          exit 1
+        fi
+    done
 }
 
 create_stackset
