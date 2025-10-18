@@ -9,7 +9,7 @@ on:
 
 jobs:
   build:
-    name: BUILD IMAGE
+    name: Build Image
     runs-on: ubuntu-latest
     environment: ${{ inputs.environment }}
     steps:
@@ -31,7 +31,7 @@ jobs:
         docker push aashhik/hellopython:v1
 
   pre-deploy:
-    name: CREATE S3 BUCKETS AND AWS ROLES
+    name: Create S3 Buckets and AWS Roles
     needs: ['build']
     runs-on: ubuntu-latest
     environment: ${{ inputs.environment }}
