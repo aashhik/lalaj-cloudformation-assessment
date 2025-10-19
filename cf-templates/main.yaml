@@ -16,7 +16,7 @@ Resources:
     Properties:
       TemplateURL: !Sub https://s3.amazonaws.com/${CFBucket}/${CFBucketPrefix}/vpc.yaml
       Parameters:
-        projectName: demo-lalas
+        projectName: demo-lalals
         envName: dev
         vpcCidrBlock: 10.72.0.0/16
         numberOfSubnets: 4
@@ -28,9 +28,9 @@ Resources:
     Properties:
       TemplateURL: !Sub https://s3.amazonaws.com/${CFBucket}/${CFBucketPrefix}/ecs.yaml
       Parameters:
-        projectName: demo-lalas
+        projectName: demo-lalals
         envName: dev
-        instanceType: t2.micro
+        instanceType: t3.small
         desiredCapacity: 2
         maxSize: 5
         vpcId: !GetAtt VPCStack.Outputs.VpcId
@@ -46,10 +46,10 @@ Resources:
         projectName: demo-lalas
         envName: dev
         containerCpu: 256
-        containerMemory: 512
+        containerMemory: 256
         containerPort: 8000
-        # imageUrl: aashhik/hellopython:v1
-        imageUrl: docker.io/nginx:latest
+        imageUrl: aashhik/hellopython:v1
+        # imageUrl: docker.io/nginx:latest
         desiredCount: 2
         serviceName: python
         vpcId: !GetAtt VPCStack.Outputs.VpcId
@@ -58,3 +58,4 @@ Resources:
         clusterName: !GetAtt ECSStack.Outputs.ClusterName
         ecsTaskExecutionRole: !GetAtt ECSStack.Outputs.ECSTaskExecutionRole
         capacityProvider: !GetAtt ECSStack.Outputs.CapacityProvider
+      TimeoutInMinutes: 30

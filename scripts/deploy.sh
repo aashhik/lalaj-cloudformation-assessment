@@ -53,6 +53,7 @@ function create_update_stackset () {
           ParameterKey=CFBucket,ParameterValue=$BUCKET_NAME \
           ParameterKey=CFBucketPrefix,ParameterValue=$BUCKET_PREFIX \
       || echo "No updates are to be performed !!"
+      check_status
 
     else
       echo "StackSet does not exist. Creating new StackSet..."
@@ -91,6 +92,10 @@ function create_stack_instances () {
     echo ""
     echo "StackSet instances creation initiated with OperationId '$operation_id'..."
 
+    check_status
+}
+
+function check_status () {
     while true; do
         status=$(aws cloudformation describe-stack-set-operation \
                       --stack-set-name $STACKSET_NAME \

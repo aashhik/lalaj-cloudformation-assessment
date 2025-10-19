@@ -23,7 +23,7 @@ Parameters:
   instanceType:
     Description: EC2 instance type
     Type: String
-    Default: "t2.micro"
+    Default: "t3.medium"
 
   desiredCapacity:
     Description: Number of EC2 instances to launch in ECS cluster.

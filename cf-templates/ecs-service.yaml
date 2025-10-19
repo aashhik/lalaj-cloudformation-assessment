@@ -37,7 +37,7 @@ Parameters:
   containerMemory:
     Description: How much memory in megabytes to give the container
     Type: Number
-    Default: 512
+    Default: 256
 
   containerPort:
     Description: What port does the app run on
@@ -70,6 +70,8 @@ Resources:
   LogGroup:
     Type: AWS::Logs::LogGroup
     Properties:
+      LogGroupName: !Sub "/aws/ecs/${serviceName}"
+      LogGroupClass: STANDARD
       RetentionInDays: 7
       Tags: 
         - Key: Name
