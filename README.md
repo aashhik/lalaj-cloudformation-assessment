@@ -4,7 +4,7 @@ _`It is recommended to test this script in a fresh AWS environment to avoid conf
 This repository contains AWS CloudFormation templates located in the `cf-templates` directory.
 These templates provision the core AWS infrastructure components; VPC, ECS and ELB. A simple **Python** application along with its Dockerfile is available in the `app` directory. The **GitHub Actions** workflows for building, deploying, and automating tasks are defined under the `.github/workflows` directory and all supporting **scripts** are located in the `scripts` directory.
 
-The cloudformation templates support multi-region deployment. Stacksets are created in Admin Account and Stack Instances are created in Target Account. Necessary refernce are taken from AWS documentation [here](https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/stacksets-prereqs-self-managed.html). 
+The cloudformation templates support multi-region deployment. Stacksets are created in Admin Account and Stack Instances are created in Target Account. Relevant references are taken from AWS documentation [here](https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/stacksets-prereqs-self-managed.html). 
 
 > ⚠️ **Important:** The script initially creates a CloudFormation StackSet **execution role** with **Administrator Access**.  
 > Before deploying the StackSet, this role is replaced with a **custom minimal IAM policy** (created by the script) that grants access only to the specific AWS services required for provisioning. This ensures least-privilege access while maintaining the necessary functionality.
@@ -81,8 +81,6 @@ The cloudformation templates support multi-region deployment. Stacksets are crea
 > - `DOCKER_USERNAME`  
 > - `STACKSET_NAME`
 >
-> You can find them [here](https://github.com/aashhik/lalals-cloudformation-assessment/settings/environments/9385732062/edit).
->
 > At the final stage, the deployed endpoint is tested using the `curl` command.  
 > The Python application handles **GET requests** for both the `/` and `/hello` routes.
 
@@ -102,13 +100,12 @@ An **Application Load Balancer (ALB)** is deployed in the **public subnets**, al
 
 ## Run from your terminal
 
-*`Before running the scripts, ensure that your AWS CLI is properly configured with valid **Access Key** and **Secret Key** credentials.`*  
-*`Once configured, execute the scripts in the following order: first the **prerequisites script**, followed by the **deploy script**.`*
+*`Before running the scripts, ensure that your AWS CLI is properly configured with valid **Access Key** and **Secret Key** credentials.`* 
 
 ⚠️ Note: Ensure that your AWS credentials have sufficient permissions to create IAM roles, S3 buckets, and CloudFormation StackSets. Running with limited permissions may cause the scripts to fail.
 
 > ℹ️ **Info:** You can also use the `terminal.sh` script located in the `scripts` directory to run the pipeline directly from your terminal.  
-> Replace the environment variables with your own values before executing the script.
+> Replace the environment variables with your own values inside `terminal.sh` file before executing the script.
 
 **Example:**
 ```bash
