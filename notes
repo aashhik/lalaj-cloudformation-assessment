@@ -1,0 +1,16 @@
+aws cloudformation describe-stack-set-operation \
+                      --stack-set-name demo-lalals-stackset \
+                      --operation-id bdd253dd-075d-4670-b7d4-a534176e3303 \
+                      --query "StackSetOperation.Status" \
+                      --output text
+
+
+aws cloudformation update-stack-set \
+        --stack-set-name demo-lalals-stackset \
+        --template-url https://s3.amazonaws.com/demo-lalals-bucket-cf/cf-templates/main.yaml \
+        --capabilities CAPABILITY_NAMED_IAM \
+        --query "OperationId" \
+        --output text \
+        --parameters \
+          ParameterKey=CFBucket,ParameterValue=demo-lalals-bucket-cf \
+          ParameterKey=CFBucketPrefix,ParameterValue=cf-templates

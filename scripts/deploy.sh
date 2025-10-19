@@ -53,9 +53,13 @@ function create_update_stackset () {
         --output text \
         --parameters \
           ParameterKey=CFBucket,ParameterValue=$BUCKET_NAME \
-          ParameterKey=CFBucketPrefix,ParameterValue=$BUCKET_PREFIX) \
-      && check_status "$operation_id" \
-      || echo "No updates are to be performed !!"
+          ParameterKey=CFBucketPrefix,ParameterValue=$BUCKET_PREFIX)
+      if [[ $? -eq 0 ]]; then
+        echo "Update initiated, Operation ID: $operation_id"
+        check_status "$operation_id"
+      else
+        echo "Failed to perform updates !!"
+      fi
 
     else
       echo "StackSet does not exist. Creating new StackSet..."
