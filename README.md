@@ -25,15 +25,6 @@ The cloudformation templates support multi-region deployment. Stacksets are crea
 > 2. `bucket_prefix` – Prefix under which templates will be stored  
 > 3. `admin_aws_account_id` – AWS Account ID with admin permissions(preferred)  
 >
-> **Usage:**
-> ```bash
-> # bash ./scripts/prerequisites.sh <your_bucket_name> <your_bucket_prefix> <your_admin_aws_account_id>
-> ```
->
-> **Example:**
-> ```bash
-> # bash ./scripts/prerequisites.sh my-test-bucket templates 112233445566
-> ```
 
 ### `deploy.sh`
 > This script creates StackSet in the AWS Admin account and Stack Instances in the AWS Target account. It uses the template that is uploaded in S3 bucket which is done using prerequisites script. 
@@ -46,15 +37,6 @@ The cloudformation templates support multi-region deployment. Stacksets are crea
 > 5. `target_aws_account_region` – AWS Region where AWS Infrastructure is to be deployed
 > 6. `stackset_name` – Cloudformation Stackset name which will be deployed in Admin Account
 >
-> **Usage:**
-> ```bash
-> # bash ./scripts/deploy.sh <your_bucket_name> <your_bucket_prefix> <your_admin_aws_account_id> <your_target_aws_account_id> <your_target_aws_region> <your_stackset_name>
-> ```
->
-> **Example:**
-> ```bash
-> # bash ./scripts/deploy.sh my-test-bucket templates 112233445566 889977665522 us-west-2 my-stackset
-> ```
 
 ## How does the CI/CD pipeline work?
 
@@ -104,14 +86,22 @@ An **Application Load Balancer (ALB)** is deployed in the **public subnets**, al
 
 ⚠️ Note: Ensure that your AWS credentials have sufficient permissions to create IAM roles, S3 buckets, and CloudFormation StackSets. Running with limited permissions may cause the scripts to fail.
 
-> ℹ️ **Info:** You can also use the `terminal.sh` script located in the `scripts` directory to run the pipeline directly from your terminal.  
-> Replace the environment variables with your own values inside `terminal.sh` file before executing the script.
+> ℹ️ **Info:**  
+> Run the `prerequisites.sh` script located in the `scripts` directory **first**, followed by the `deploy-terminal.sh` script.  
+> Make sure to execute the commands **from the root directory**, not inside the `scripts` folder.
+>
+**Example: Run prerequisites script**
+> ```bash
+> bash ./scripts/prerequisites.sh my-test-bucket templates 112233445566
+> ```
 
-**Example:**
-```bash
-# bash ./scripts/terminal.sh
-```
+Now run the deploy script.
+>
+**Example: Run deploy-terminal script**
+> ```bash
+> bash ./scripts/deploy-terminal.sh my-test-bucket templates 112233445566 889977665522 us-west-2 my-stackset
+> ```
 
 ## ✅ **CONCLUSION**  
-> On the closing note, I have successfully provisioned AWS Services through CI/CD pipeline on three different `SANDBOX ENVIRONMENT`. 
+> On the closing note, I have successfully provisioned AWS Services through CI/CD pipeline on different `SANDBOX ENVIRONMENTS`. 
 > You can verify the deployment details in the **Actions** tab or view them [here](https://github.com/aashhik/lalals-cloudformation-assessment/actions).
