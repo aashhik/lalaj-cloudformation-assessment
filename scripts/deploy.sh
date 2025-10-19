@@ -54,7 +54,7 @@ function create_update_stackset () {
         --parameters \
           ParameterKey=CFBucket,ParameterValue=$BUCKET_NAME \
           ParameterKey=CFBucketPrefix,ParameterValue=$BUCKET_PREFIX) \
-      && check_status "$operation_id"
+      && check_status "$operation_id" \
       || echo "No updates are to be performed !!"
 
     else
