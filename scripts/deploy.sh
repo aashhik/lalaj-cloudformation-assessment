@@ -69,6 +69,8 @@ function create_update_stackset () {
             ParameterKey=CFBucketPrefix,ParameterValue=$BUCKET_PREFIX
       echo ""
       echo "StackSet '$STACKSET_NAME' creation initiated."
+      echo ""
+      create_stack_instances
     fi
 }
 
@@ -117,5 +119,4 @@ function get_alb_endpoint () {
 }
 
 create_update_stackset
-create_stack_instances
 get_alb_endpoint
