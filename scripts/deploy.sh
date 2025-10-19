@@ -45,15 +45,17 @@ function create_update_stackset () {
     echo "Creating StackSet $STACKSET_NAME in admin account $ADMIN_ACCOUNT_ID..."
     if aws cloudformation describe-stack-set --stack-set-name "$STACKSET_NAME" >/dev/null 2>&1; then
       echo "StackSet exists. Updating template..."
-      aws cloudformation update-stack-set \
+      operation_id=$(aws cloudformation update-stack-set \
         --stack-set-name $STACKSET_NAME \
         --template-url https://s3.amazonaws.com/$BUCKET_NAME/$BUCKET_PREFIX/main.yaml \
         --capabilities CAPABILITY_NAMED_IAM \
+        --query "OperationId" \
+        --output text \
         --parameters \
           ParameterKey=CFBucket,ParameterValue=$BUCKET_NAME \
-          ParameterKey=CFBucketPrefix,ParameterValue=$BUCKET_PREFIX \
+          ParameterKey=CFBucketPrefix,ParameterValue=$BUCKET_PREFIX) \
+      && check_status "$operation_id"
       || echo "No updates are to be performed !!"
-      check_status
 
     else
       echo "StackSet does not exist. Creating new StackSet..."
@@ -92,10 +94,11 @@ function create_stack_instances () {
     echo ""
     echo "StackSet instances creation initiated with OperationId '$operation_id'..."
 
-    check_status
+    check_status $operation_id
 }
 
 function check_status () {
+    local operation_id=$1
     while true; do
         status=$(aws cloudformation describe-stack-set-operation \
                       --stack-set-name $STACKSET_NAME \
