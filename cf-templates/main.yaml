@@ -48,7 +48,8 @@ Resources:
         containerCpu: 256
         containerMemory: 512
         containerPort: 8000
-        imageUrl: aashhik/hellopython:v1
+        # imageUrl: aashhik/hellopython:v1
+        imageUrl: docker.io/nginx:latest
         desiredCount: 2
         serviceName: python
         vpcId: !GetAtt VPCStack.Outputs.VpcId
