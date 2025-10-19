@@ -75,6 +75,7 @@ function create_cf_stackset_administration_role () {
 }
 
 function create_cf_stackset_execution_role () {
+    local role_name="AWSCloudFormationStackSetExecutionRole"
     if ! aws iam list-roles --query "Roles[].RoleName" --output text | grep -q AWSCloudFormationStackSetExecutionRole; then
         echo "Creating CloudFormation stack that creates Cloudformation Execution Role"
         aws cloudformation create-stack \
@@ -85,6 +86,16 @@ function create_cf_stackset_execution_role () {
         aws cloudformation wait stack-create-complete \
             --stack-name createCloudFormationStackSetExecutionRole
         echo "Stack creation complete. Proceeding to attach minimal policy..."
+        echo "Detaching all managed policies from role: $role_name"
+        policy_arn=$(aws iam list-attached-role-policies \
+                        --role-name AWSCloudFormationStackSetExecutionRole \
+                        --query "AttachedPolicies[*].PolicyArn" \
+                        --output text)
+
+        aws iam detach-role-policy \
+            --role-name AWSCloudFormationStackSetExecutionRole \
+            --policy-arn $policy_arn
+        
         add_minimal_policy
     else
         echo "CloudFormation Execution Role already exists[SKIPPED]."
@@ -93,21 +104,8 @@ function create_cf_stackset_execution_role () {
 }
 
 function add_minimal_policy () {
-    local role_name="AWSCloudFormationStackSetExecutionRole"
     local policy_file="policy.json"
     local policy_name="CFStackSetExecutionMinimalPolicy"
-
-
-    echo "Detaching all managed policies from role: $role_name"
-    policy_arn=$(aws iam list-attached-role-policies \
-                    --role-name AWSCloudFormationStackSetExecutionRole \
-                    --query "AttachedPolicies[*].PolicyArn" \
-                    --output text)
-
-    aws iam detach-role-policy \
-        --role-name AWSCloudFormationStackSetExecutionRole \
-        --policy-arn $policy_arn
-
     echo ""
     echo "Generating minimal policy for AWSCloudFormationStackSetExecutionRole IAM Role"
     cat > "$policy_file" <<EOF
