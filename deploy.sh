@@ -41,7 +41,7 @@ STACKSET_NAME="$6"
 # Disable AWS CLI pager for the duration of this script
 export AWS_PAGER=""
 
-function create_or_update_stackset () {
+function create_update_stackset () {
     echo "Creating StackSet $STACKSET_NAME in admin account $ADMIN_ACCOUNT_ID..."
     if aws cloudformation describe-stack-set --stack-set-name "$STACKSET_NAME" >/dev/null 2>&1; then
       echo "StackSet exists. Updating template..."
@@ -116,6 +116,6 @@ function get_alb_endpoint () {
     echo "alb-endpoint=$endpoint" >> $GITHUB_OUTPUT
 }
 
-create_stackset
+create_update_stackset
 create_stack_instances
 get_alb_endpoint
