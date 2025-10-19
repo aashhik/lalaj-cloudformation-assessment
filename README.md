@@ -36,15 +36,13 @@ The cloudformation templates support multi-region deployment. Stacksets are crea
 > ```
 
 ### `deploy.sh`
-> This script creates StackSet in the AWS Admin account and Stack Instances in the AWS Target account. It uses the template that is uploaded in S3 bucket which is done using prerequisites script.
->
-> It should be executed **before running the deploy script**.  
+> This script creates StackSet in the AWS Admin account and Stack Instances in the AWS Target account. It uses the template that is uploaded in S3 bucket which is done using prerequisites script. 
 >
 > The script expects six arguments:  
 > 1. `bucket_name` – Name of the S3 bucket to be created  
 > 2. `bucket_prefix` – Prefix under which templates will be stored  
 > 3. `admin_aws_account_id` – AWS Account ID with admin permissions
-> 4. `target_aws_account_id` – AWS Account where AWS Infrastructure is to be deployed
+> 4. `target_aws_account_id` – AWS Account ID where AWS Infrastructure is to be deployed
 > 5. `target_aws_account_region` – AWS Region where AWS Infrastructure is to be deployed
 > 6. `stackset_name` – Cloudformation Stackset name which will be deployed in Admin Account
 >
@@ -82,7 +80,9 @@ The cloudformation templates support multi-region deployment. Stacksets are crea
 > - `BUCKET_PREFIX`  
 > - `DOCKER_USERNAME`  
 > - `STACKSET_NAME`
-
+>
+> You can find them [here](https://github.com/aashhik/lalals-cloudformation-assessment/settings/environments/9385732062/edit).
+>
 > At the final stage, the deployed endpoint is tested using the `curl` command.  
 > The Python application handles **GET requests** for both the `/` and `/hello` routes.
 

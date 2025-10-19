@@ -114,7 +114,7 @@ function check_status () {
           echo "Stack set operation succeeded. You can now test the endpoint."
           break
         elif [ "$status" = "QUEUED" ] || [ "$status" = "RUNNING" ]; then
-          echo "`date +"%a %b %d %I:%M:%S %p +0545"` Stack set operation is still in progress. Status: $status"
+          echo "[`date +"%a %b %d %I:%M:%S %p +0545"`] Stack set operation is still in progress. Status: $status"
           sleep 10
         else
           echo "Stack set operation failed. Status: $status"
