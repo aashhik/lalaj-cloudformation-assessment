@@ -111,3 +111,7 @@ An **Application Load Balancer (ALB)** is deployed in the **public subnets**, al
 ```bash
 # bash ./scripts/terminal.sh
 ```
+
+## ✅ **CONCLUSION**  
+> On the closing note, I have successfully provisioned AWS Services through CI/CD pipeline on three different `SANDBOX ENVIRONMENT`. 
+> You can verify the deployment details in the **Actions** tab or view them [here](https://github.com/aashhik/lalals-cloudformation-assessment/actions).
