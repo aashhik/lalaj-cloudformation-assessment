@@ -52,7 +52,7 @@ jobs:
           BUCKET_PREFIX: ${{ vars.BUCKET_PREFIX }}
           AWS_ADMIN_ACCOUNT_ID: ${{ vars.AWS_ADMIN_ACCOUNT_ID }}
         run: |
-          bash ./prerequisites.sh "$BUCKET_NAME" "$BUCKET_PREFIX" "$AWS_ADMIN_ACCOUNT_ID"
+          bash ./scripts/prerequisites.sh "$BUCKET_NAME" "$BUCKET_PREFIX" "$AWS_ADMIN_ACCOUNT_ID"
 
   deploy:
     name: Create AWS Services using Cloudformation templates
@@ -80,7 +80,7 @@ jobs:
           AWS_TARGET_REGION: ${{ vars.AWS_TARGET_REGION }}
           STACKSET_NAME: ${{ vars.STACKSET_NAME }}
         run: |
-          bash ./deploy.sh "$BUCKET_NAME" "$BUCKET_PREFIX" "$AWS_ADMIN_ACCOUNT_ID" "$AWS_TARGET_ACCOUNT_ID" "$AWS_TARGET_REGION" "$STACKSET_NAME"
+          bash ./scripts/deploy.sh "$BUCKET_NAME" "$BUCKET_PREFIX" "$AWS_ADMIN_ACCOUNT_ID" "$AWS_TARGET_ACCOUNT_ID" "$AWS_TARGET_REGION" "$STACKSET_NAME"
     outputs:
       endpoint: ${{ steps.cf-deploy.outputs.alb-endpoint }}
 
@@ -93,4 +93,4 @@ jobs:
         env:
           ALB_ENDPOINT: ${{ needs.deploy.outputs.endpoint}}
         run: |
-          curl http://$ALB_ENDPOINT/hello; echo
+          curl -s http://$ALB_ENDPOINT/hello; echo
