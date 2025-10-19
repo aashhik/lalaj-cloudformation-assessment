@@ -93,4 +93,6 @@ jobs:
         env:
           ALB_ENDPOINT: ${{ needs.deploy.outputs.endpoint}}
         run: |
-          curl -s http://$ALB_ENDPOINT/hello; echo
+          echo $ALB_ENDPOINT
+          echo ""
+          curl -s http://$ALB_ENDPOINT/hello || curl -s http://$ALB_ENDPOINT
