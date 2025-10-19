@@ -39,6 +39,12 @@ export AWS_PAGER=""
 function create_s3_bucket () {
     if aws s3api head-bucket --bucket "$BUCKET_NAME" 2>/dev/null; then
         echo "S3 bucket '$BUCKET_NAME' already exists. Skipping creation."
+        echo ""
+        echo "Uploading Cloudformation templates to $BUCKET_NAME S3 bucket..."
+        upload_templates
+        echo "Upload Completed !!"
+        echo ""
+
     else
         echo "Creating S3 Bucket $BUCKET_NAME with prefix $BUCKET_PREFIX..."
         aws s3api create-bucket \
