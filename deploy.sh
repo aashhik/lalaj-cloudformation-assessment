@@ -41,21 +41,35 @@ STACKSET_NAME="$6"
 # Disable AWS CLI pager for the duration of this script
 export AWS_PAGER=""
 
-function create_stackset () {
+function create_or_update_stackset () {
     echo "Creating StackSet $STACKSET_NAME in admin account $ADMIN_ACCOUNT_ID..."
-    aws cloudformation create-stack-set \
+    if aws cloudformation describe-stack-set --stack-set-name "$STACKSET_NAME" >/dev/null 2>&1; then
+      echo "StackSet exists. Updating template..."
+      aws cloudformation update-stack-set \
         --stack-set-name $STACKSET_NAME \
         --template-url https://s3.amazonaws.com/$BUCKET_NAME/$BUCKET_PREFIX/main.yaml \
-        --permission-model SELF_MANAGED \
-        --administration-role-arn arn:aws:iam::$ADMIN_ACCOUNT_ID:role/AWSCloudFormationStackSetAdministrationRole \
-        --execution-role-name AWSCloudFormationStackSetExecutionRole \
         --capabilities CAPABILITY_NAMED_IAM \
-        --description "Self-managed StackSet for multiple accounts" \
         --parameters \
           ParameterKey=CFBucket,ParameterValue=$BUCKET_NAME \
-          ParameterKey=CFBucketPrefix,ParameterValue=$BUCKET_PREFIX
-    echo ""
-    echo "StackSet '$STACKSET_NAME' creation initiated."
+          ParameterKey=CFBucketPrefix,ParameterValue=$BUCKET_PREFIX \
+      || echo "No updates are to be performed !!"
+
+    else
+      echo "StackSet does not exist. Creating new StackSet..."
+      aws cloudformation create-stack-set \
+          --stack-set-name $STACKSET_NAME \
+          --template-url https://s3.amazonaws.com/$BUCKET_NAME/$BUCKET_PREFIX/main.yaml \
+          --permission-model SELF_MANAGED \
+          --administration-role-arn arn:aws:iam::$ADMIN_ACCOUNT_ID:role/AWSCloudFormationStackSetAdministrationRole \
+          --execution-role-name AWSCloudFormationStackSetExecutionRole \
+          --capabilities CAPABILITY_NAMED_IAM \
+          --description "Self-managed StackSet for multiple accounts" \
+          --parameters \
+            ParameterKey=CFBucket,ParameterValue=$BUCKET_NAME \
+            ParameterKey=CFBucketPrefix,ParameterValue=$BUCKET_PREFIX
+      echo ""
+      echo "StackSet '$STACKSET_NAME' creation initiated."
+    fi
 }
 
 function create_stack_instances () {

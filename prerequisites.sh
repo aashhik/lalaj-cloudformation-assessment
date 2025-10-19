@@ -37,16 +37,20 @@ TEMPLATE_DIR="./cf-templates"
 export AWS_PAGER=""
 
 function create_s3_bucket () {
-    echo "Creating S3 Bucket $BUCKET_NAME with prefix $BUCKET_PREFIX..."
-    aws s3api create-bucket \
-        --bucket $BUCKET_NAME \
-        --region us-east-1
-    echo "Created !!"
-    echo ""
-    echo "Uploading Cloudformation templates to $BUCKET_NAME S3 bucket..."
-    upload_templates
-    echo "Upload Completed !!"
-    echo ""
+    if aws s3api head-bucket --bucket "$BUCKET_NAME" 2>/dev/null; then
+        echo "S3 bucket '$BUCKET_NAME' already exists. Skipping creation."
+    else
+        echo "Creating S3 Bucket $BUCKET_NAME with prefix $BUCKET_PREFIX..."
+        aws s3api create-bucket \
+            --bucket $BUCKET_NAME \
+            --region us-east-1
+        echo "Created !!"
+        echo ""
+        echo "Uploading Cloudformation templates to $BUCKET_NAME S3 bucket..."
+        upload_templates
+        echo "Upload Completed !!"
+        echo ""
+    fi
 } 
 
 function upload_templates () {
@@ -84,6 +88,7 @@ function create_cf_stackset_execution_role () {
         add_minimal_policy
     else
         echo "CloudFormation Execution Role already exists[SKIPPED]."
+        add_minimal_policy
     fi
 }
 
