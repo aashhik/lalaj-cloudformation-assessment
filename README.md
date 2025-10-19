@@ -1,12 +1,16 @@
 # Implementation Summary: AWS CloudFormation
-_`It is recommended to test this script in a fresh AWS environment to avoid conflicts when creating roles, services, or other resources.`_
+_`It is recommended to test this script in a fresh AWS environment to avoid conflicts when creating roles, services or other resources.`_
 
 This repository contains AWS CloudFormation templates located in the `cf-templates` directory.
-These templates provision the core AWS infrastructure components; VPC, ECS and ELB. A simple **Python** application along with its Dockerfile is available in the `app` directory. The **GitHub Actions** workflows for building, deploying, and automating tasks are defined under the `.github/workflows` directory. All supporting **scripts** are located in the `scripts` directory.
+These templates provision the core AWS infrastructure components; VPC, ECS and ELB. A simple **Python** application along with its Dockerfile is available in the `app` directory. The **GitHub Actions** workflows for building, deploying, and automating tasks are defined under the `.github/workflows` directory and all supporting **scripts** are located in the `scripts` directory.
 
-The cloudformation templates support multi-region deployment. Stacksets are created in Admin Account and stack instances are created in Target Account. Necessary refernce are taken from AWS documentation [here](https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/stacksets-prereqs-self-managed.html). 
+The cloudformation templates support multi-region deployment. Stacksets are created in Admin Account and Stack Instances are created in Target Account. Necessary refernce are taken from AWS documentation [here](https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/stacksets-prereqs-self-managed.html). 
 
->ℹ️ Info: You can test the template using same account for both admin and target AWS account.
+> ⚠️ **Important:** The script initially creates a CloudFormation StackSet **execution role** with **Administrator Access**.  
+> Before deploying the StackSet, this role is replaced with a **custom minimal IAM policy** (created by the script) that grants access only to the specific AWS services required for provisioning. This ensures least-privilege access while maintaining the necessary functionality.
+
+
+>ℹ️ Info: You can test the template using same Account ID for both admin and target AWS account.
 
 ## What do the scripts do?
 
@@ -19,7 +23,7 @@ The cloudformation templates support multi-region deployment. Stacksets are crea
 > The script expects three arguments:  
 > 1. `bucket_name` – Name of the S3 bucket to be created  
 > 2. `bucket_prefix` – Prefix under which templates will be stored  
-> 3. `admin_aws_account_id` – AWS Account ID with admin permissions  
+> 3. `admin_aws_account_id` – AWS Account ID with admin permissions(preferred)  
 >
 > **Usage:**
 > ```bash
