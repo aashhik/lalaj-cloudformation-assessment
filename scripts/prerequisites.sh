@@ -61,7 +61,7 @@ function create_s3_bucket () {
 
 function upload_templates () {
     for file in `ls $TEMPLATE_DIR/*.yaml`; do
-        aws s3 cp "$file" "s3://$BUCKET_NAME/cf-templates/$(basename "$file")"
+        aws s3 cp "$file" "s3://$BUCKET_NAME/$BUCKET_PREFIX/$(basename "$file")"
     done
 }
 
