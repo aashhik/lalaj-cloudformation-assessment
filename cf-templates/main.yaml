@@ -33,6 +33,8 @@ Resources:
         instanceType: t3.small
         desiredCapacity: 2
         maxSize: 5
+        containerPort: 8000
+        # containerPort: 80
         vpcId: !GetAtt VPCStack.Outputs.VpcId
         subnetIds: !Join [",", [!GetAtt VPCStack.Outputs.PrivateSubnet1Id, !GetAtt VPCStack.Outputs.PrivateSubnet2Id]]
       TimeoutInMinutes: 30
@@ -47,10 +49,10 @@ Resources:
         envName: dev
         containerCpu: 256
         containerMemory: 256
-        # containerPort: 8000
-        containerPort: 80
-        # imageUrl: aashhik/hellopython:v1
-        imageUrl: docker.io/nginx:latest
+        containerPort: 8000
+        # containerPort: 80
+        imageUrl: aashhik/hellopython:v1
+        # imageUrl: docker.io/nginx:latest
         desiredCount: 2
         serviceName: python
         vpcId: !GetAtt VPCStack.Outputs.VpcId
